@@ -25,7 +25,7 @@ PageType {
         }
     }
 
-    defaultActiveFocusItem: focusItem
+    // defaultActiveFocusItem: focusItem
 
     FlickableType {
         id: fl
@@ -42,15 +42,11 @@ PageType {
 
             spacing: 0
 
-            Item {
-                id: focusItem
-                KeyNavigation.tab: textKey.textField
-            }
-
-
             HeaderType {
-                property bool isVisible: SettingsController.getInstallationUuid() !== "" || PageController.isStartPageVisible()
+                id: moreButton
 
+                property bool isVisible: SettingsController.getInstallationUuid() !== "" || PageController.isStartPageVisible()
+                
                 Layout.fillWidth: true
                 Layout.topMargin: 24
                 Layout.rightMargin: 16
@@ -60,7 +56,16 @@ PageType {
 
                 actionButtonImage: isVisible ? "qrc:/images/controls/more-vertical.svg" : ""
                 actionButtonFunction: function() {
-                    moreActionsDrawer.open()
+                    moreActionsDrawer.openTriggered()
+                }
+
+                actionButton.onFocusChanged: {
+                    console.debug("MOVE THIS LOGIC TO CPP!")
+                    if (actionButton.activeFocus) {
+                        if (fl) {
+                            fl.ensureVisible(moreButton)
+                        }
+                    }
                 }
 
                 DrawerType2 {
@@ -71,7 +76,7 @@ PageType {
                     anchors.fill: parent
                     expandedHeight: root.height * 0.5
 
-                    expandedContent: ColumnLayout {
+                    expandedStateContent: ColumnLayout {
                         anchors.top: parent.top
                         anchors.left: parent.left
                         anchors.right: parent.right
@@ -154,8 +159,6 @@ PageType {
                     textField.text = ""
                     textField.paste()
                 }
-
-                KeyNavigation.tab: continueButton
             }
 
             BasicButtonType {
@@ -166,10 +169,18 @@ PageType {
                 Layout.rightMargin: 16
                 Layout.leftMargin: 16
 
+                onFocusChanged: {
+                    console.debug("MOVE THIS LOGIC TO CPP!")
+                    if (activeFocus) {
+                        if (fl) {
+                            fl.ensureVisible(this)
+                        }
+                    }
+                }
+
                 visible: textKey.textFieldText !== ""
 
                 text: qsTr("Continue")
-                Keys.onTabPressed: lastItemTabClicked(focusItem)
 
                 clickedFunc: function() {
                     if (ImportController.extractConfigFromData(textKey.textFieldText)) {
@@ -203,6 +214,15 @@ PageType {
                 rightImageSource: "qrc:/images/controls/chevron-right.svg"
                 leftImageSource: "qrc:/images/controls/amnezia.svg"
 
+                focusItem.onFocusChanged: {
+                    console.debug("MOVE THIS LOGIC TO CPP!")
+                    if (focusItem.activeFocus) {
+                        if (fl) {
+                            fl.ensureVisible(apiInstalling)
+                        }
+                    }
+                }
+
                 onClicked: function() {
                     PageController.showBusyIndicator(true)
                     var result = InstallController.fillAvailableServices()
@@ -227,6 +247,15 @@ PageType {
                 rightImageSource: "qrc:/images/controls/chevron-right.svg"
                 leftImageSource: "qrc:/images/controls/server.svg"
 
+                focusItem.onFocusChanged: {
+                    console.debug("MOVE THIS LOGIC TO CPP!")
+                    if (focusItem.activeFocus) {
+                        if (fl) {
+                            fl.ensureVisible(manualInstalling)
+                        }
+                    }
+                }
+
                 onClicked: {
                     PageController.goToPage(PageEnum.PageSetupWizardCredentials)
                 }
@@ -246,6 +275,15 @@ PageType {
 
                 rightImageSource: "qrc:/images/controls/chevron-right.svg"
                 leftImageSource: "qrc:/images/controls/archive-restore.svg"
+
+                focusItem.onFocusChanged: {
+                    console.debug("MOVE THIS LOGIC TO CPP!")
+                    if (focusItem.activeFocus) {
+                        if (fl) {
+                            fl.ensureVisible(backupRestore)
+                        }
+                    }
+                }
 
                 onClicked: {
                     var filePath = SystemController.getFileName(qsTr("Open backup file"),
@@ -270,6 +308,13 @@ PageType {
 
                 rightImageSource: "qrc:/images/controls/chevron-right.svg"
                 leftImageSource: "qrc:/images/controls/folder-search-2.svg"
+
+                focusItem.onFocusChanged: {
+                    console.debug("MOVE THIS LOGIC TO CPP!")
+                    if (fl) {
+                        fl.ensureVisible(openFile)
+                    }
+                }
 
                 onClicked: {
                     var nameFilter = !ServersModel.getServersCount() ? "Config or backup files (*.vpn *.ovpn *.conf *.json *.backup)" :
@@ -298,6 +343,15 @@ PageType {
                 rightImageSource: "qrc:/images/controls/chevron-right.svg"
                 leftImageSource: "qrc:/images/controls/scan-line.svg"
 
+                focusItem.onFocusChanged: {
+                    console.debug("MOVE THIS LOGIC TO CPP!")
+                    if (focusItem.activeFocus) {
+                        if (fl) {
+                            fl.ensureVisible(scanQr)
+                        }
+                    }
+                }
+
                 onClicked: {
                     ImportController.startDecodingQr()
                     if (Qt.platform.os === "ios") {
@@ -320,6 +374,15 @@ PageType {
 
                 rightImageSource: "qrc:/images/controls/chevron-right.svg"
                 leftImageSource: "qrc:/images/controls/help-circle.svg"
+
+                focusItem.onFocusChanged: {
+                    console.debug("MOVE THIS LOGIC TO CPP!")
+                    if (focusItem.activeFocus) {
+                        if (fl) {
+                            fl.ensureVisible(siteLink)
+                        }
+                    }
+                }
 
                 onClicked: {
                     Qt.openUrlExternally(LanguageModel.getCurrentSiteUrl())
