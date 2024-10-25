@@ -142,7 +142,7 @@ void ListViewFocusController::nextDelegate()
 {
     switch(m_currentSection) {
     case Section::Default: {
-        if(m_header) {
+        if(hasHeader()) {
             m_currentSection = Section::Header;
             viewToBegin();
             break;
@@ -160,7 +160,7 @@ void ListViewFocusController::nextDelegate()
         if (m_delegateIndex < (size() - 1)) {
             m_delegateIndex++;
             break;
-        } else if (m_footer) {
+        } else if (hasFooter()) {
             m_currentSection = Section::Footer;
             viewToEnd();
             break;
@@ -182,7 +182,7 @@ void ListViewFocusController::previousDelegate()
 {
     switch(m_currentSection) {
     case Section::Default: {
-        if(m_footer) {
+        if(hasFooter()) {
             m_currentSection = Section::Footer;
             break;
         }
@@ -200,7 +200,7 @@ void ListViewFocusController::previousDelegate()
         if (m_delegateIndex > 0) {
             m_delegateIndex--;
             break;
-        } else if (m_header) {
+        } else if (hasHeader()) {
             m_currentSection = Section::Header;
             break;
         }
@@ -331,15 +331,54 @@ bool ListViewFocusController::isLastFocusItemInDelegate()
 
 bool ListViewFocusController::isFirstFocusItemInListView()
 {
-    return (m_delegateIndex == 0) && isFirstFocusItemInDelegate();
+    switch (m_currentSection) {
+    case Section::Footer: {
+        return isFirstFocusItemInDelegate() && !hasHeader() && (size() == 0);
+    }
+    case Section::Delegate: {
+        return isFirstFocusItemInDelegate() && (m_delegateIndex == 0) && !hasHeader();
+    }
+    case Section::Header: {
+        isFirstFocusItemInDelegate();
+    }
+    case Section::Default: {
+        return true;
+    }
+    default:
+        qWarning() << "Wrong section";
+        return true;
+    }
+}
+
+bool ListViewFocusController::hasHeader()
+{
+    return m_header && !getItemsChain(m_header).isEmpty();
+}
+
+bool ListViewFocusController::hasFooter()
+{
+    return m_footer && !getItemsChain(m_footer).isEmpty();
 }
 
 bool ListViewFocusController::isLastFocusItemInListView()
 {
-    bool isLastSection = (m_footer && m_currentSection == Section::Footer)
-                         || (!m_footer && (m_currentSection == Section::Delegate) && (m_delegateIndex == size() - 1))
-                         || (m_header && (m_currentSection == Section::Header) && (size() <= 0) && !m_footer);
-    return isLastSection && isLastFocusItemInDelegate();
+    switch (m_currentSection) {
+    case Section::Default: {
+        return !hasHeader() && (size() == 0) && !hasFooter();
+    }
+    case Section::Header: {
+        return isLastFocusItemInDelegate() && (size() == 0) && !hasFooter();
+    }
+    case Section::Delegate: {
+        return isLastFocusItemInDelegate() && (m_delegateIndex == size() - 1) && !hasFooter();
+    }
+    case Section::Footer: {
+        return isLastFocusItemInDelegate();
+    }
+    default:
+        qWarning() << "Wrong section";
+        return true;
+    }
 }
 
 bool ListViewFocusController::isReturnNeeded()

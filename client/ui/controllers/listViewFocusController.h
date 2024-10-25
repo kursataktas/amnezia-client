@@ -59,6 +59,9 @@ private:
     QQuickItem* currentDelegate();
     QQuickItem* focusedItem();
 
+    bool hasHeader();
+    bool hasFooter();
+
     QQuickItem* m_listView;
     QList<QObject*> m_focusChain;
     Section m_currentSection;
