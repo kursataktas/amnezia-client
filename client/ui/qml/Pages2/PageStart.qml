@@ -246,12 +246,22 @@ PageType {
         }
 
         Keys.onPressed: function(event) {
-            if(event.key === Qt.Key_Tab) {
+            console.debug(">>>> ", event.key, " Event is caught by StartPage")
+            switch (event.key) {
+            case Qt.Key_Tab:
+            case Qt.Key_Down:
+            case Qt.Key_Right:
                 FocusController.nextKeyTabItem()
+                break
+            case Qt.Key_Backtab:
+            case Qt.Key_Up:
+            case Qt.Key_Left:
+                FocusController.previousKeyTabItem()
+                break
+            default:
+                PageController.keyPressEvent(event.key)
+                event.accepted = true
             }
-
-            PageController.keyPressEvent(event.key)
-            event.accepted = true
         }
     }
 

@@ -83,6 +83,7 @@ PageType {
 
     ListView {
         id: listView
+
         anchors.top: backButton.bottom
         anchors.bottom: parent.bottom
         anchors.right: parent.right
@@ -218,6 +219,7 @@ PageType {
 
             BasicButtonType {
                 id: checkUpdatesButton
+
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 8
                 Layout.bottomMargin: 16
@@ -238,6 +240,7 @@ PageType {
 
             BasicButtonType {
                 id: privacyPolicyButton
+
                 Layout.alignment: Qt.AlignHCenter
                 Layout.bottomMargin: 16
                 Layout.topMargin: -15

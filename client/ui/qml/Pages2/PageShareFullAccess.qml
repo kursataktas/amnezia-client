@@ -104,7 +104,7 @@ PageType {
 
                         shareConnectionDrawer.headerText = qsTr("Accessing ") + serverSelector.text
                         shareConnectionDrawer.configContentHeaderText = qsTr("File with accessing settings to ") + serverSelector.text
-                        serverSelector.close()
+                        serverSelector.closeTriggered()
                     }
 
                     Component.onCompleted: {
@@ -142,7 +142,7 @@ PageType {
                     shareConnectionDrawer.headerText = qsTr("Connection to ") + serverSelector.text
                     shareConnectionDrawer.configContentHeaderText = qsTr("File with connection settings to ") + serverSelector.text
 
-                    shareConnectionDrawer.open()
+                    shareConnectionDrawer.openTriggered()
                     shareConnectionDrawer.contentVisible = true
 
                     PageController.showBusyIndicator(false)

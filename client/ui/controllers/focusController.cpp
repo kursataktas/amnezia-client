@@ -153,8 +153,7 @@ void FocusController::focusNextListViewItem()
 {
     if (m_lvfc->isLastFocusItemInListView() || m_lvfc->isReturnNeeded()) {
         qDebug() << "===>> [Last item in ListView was reached. Going to the NEXT element after ListView]";
-        delete m_lvfc;
-        m_lvfc = nullptr;
+        resetListView();
         nextItem(Direction::Forward);
         return;
     } else if (m_lvfc->isLastFocusItemInDelegate()) {
@@ -171,8 +170,7 @@ void FocusController::focusPreviousListViewItem()
 {
     if (m_lvfc->isFirstFocusItemInListView() || m_lvfc->isReturnNeeded()) {
         qDebug() << "===>> [First item in ListView was reached. Going to the PREVIOUS element after ListView]";
-        delete m_lvfc;
-        m_lvfc = nullptr;
+        resetListView();
         nextItem(Direction::Backward);
         return;
     } else if (m_lvfc->isFirstFocusItemInDelegate()) {
@@ -279,7 +277,7 @@ void FocusController::pushRootObject(QObject* object)
 void FocusController::dropRootObject(QObject* object)
 {
     if (m_rootObjects.empty()) {
-        qDebug() << "ROOT OBJECT is already NULL";
+        qDebug() << "ROOT OBJECT is already DEFAULT";
 
         return;
     }
@@ -289,7 +287,7 @@ void FocusController::dropRootObject(QObject* object)
         if(m_rootObjects.size()) {
             qDebug() << "===>> ROOT OBJECT is changed to: " << m_rootObjects.top();
         } else {
-            qDebug() << "===>> ROOT OBJECT is changed to NULL";
+            qDebug() << "===>> ROOT OBJECT is changed to DEFAULT";
         }
     } else {
         qWarning() << "===>> TRY TO DROP WRONG ROOT OBJECT: " << m_rootObjects.top() << " SHOULD BE: " << object;
