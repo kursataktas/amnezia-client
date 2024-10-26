@@ -115,9 +115,6 @@ ListView {
 
                     z: 1
 
-                    Keys.onEnterPressed: serverInfoButton.clicked()
-                    Keys.onReturnPressed: serverInfoButton.clicked()
-
                     onClicked: function() {
                         ServersModel.processedIndex = index
                         PageController.goToPage(PageEnum.PageSettingsServerInfo)
