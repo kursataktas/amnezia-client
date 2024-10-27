@@ -159,12 +159,26 @@ Switch {
     }
 
     Keys.onEnterPressed: {
-        root.checked = !root.checked
-        root.checkedChanged()
+        if (!event.isAutoRepeat) {
+            root.checked = !root.checked
+            root.checkedChanged()
+        }
+        event.accepted = true
     }
 
     Keys.onReturnPressed: {
-        root.checked = !root.checked
-        root.checkedChanged()
+        if (!event.isAutoRepeat) {
+            root.checked = !root.checked
+            root.checkedChanged()
+        }
+        event.accepted = true
+    }
+
+    Keys.onSpacePressed: {
+        if (!event.isAutoRepeat) {
+            root.checked = !root.checked
+            root.checkedChanged()
+        }
+        event.accepted = true
     }
 }
