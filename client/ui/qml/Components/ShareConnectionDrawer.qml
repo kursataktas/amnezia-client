@@ -148,7 +148,7 @@ DrawerType2 {
                     text: qsTr("Show connection settings")
 
                     clickedFunc: function() {
-                        configContentDrawer.open()
+                        configContentDrawer.openTriggered()
                     }
                 }
 
@@ -194,7 +194,7 @@ DrawerType2 {
                             anchors.right: parent.right
                             anchors.topMargin: 16
 
-                            backButtonFunction: function() { configContentDrawer.close() }
+                            backButtonFunction: function() { configContentDrawer.closeTriggered() }
                         }
 
                         FlickableType {
