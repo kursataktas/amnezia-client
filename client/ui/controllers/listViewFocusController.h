@@ -25,7 +25,7 @@ void printItems(const QList<QObject*>& items, QObject* current_item);
  */
 class ListViewFocusController : public QObject
 {
-    // Q_OBJECT
+    Q_OBJECT
 public:
     explicit ListViewFocusController(QQuickItem* listView, QObject* parent = nullptr);
     ~ListViewFocusController();
@@ -36,14 +36,11 @@ public:
     void focusNextItem();
     void focusPreviousItem();
     void resetFocusChain();
-    bool isFirstFocusItemInListView();
-    bool isFirstFocusItemInDelegate();
-    bool isLastFocusItemInListView();
-    bool isLastFocusItemInDelegate();
-    bool isReturnNeeded();
-    void viewToBegin();
-    void viewToEnd();
-    void viewAtCurrentIndex();
+    bool isFirstFocusItemInListView() const;
+    bool isFirstFocusItemInDelegate() const;
+    bool isLastFocusItemInListView() const;
+    bool isLastFocusItemInDelegate() const;
+    bool isReturnNeeded() const;
 
 private:
     enum class Section {
@@ -55,12 +52,13 @@ private:
 
     int size() const;
     int currentIndex() const;
-    QQuickItem* itemAtIndex(const int index);
-    QQuickItem* currentDelegate();
-    QQuickItem* focusedItem();
+    void viewAtCurrentIndex() const;
+    QQuickItem* itemAtIndex(const int index) const;
+    QQuickItem* currentDelegate() const;
+    QQuickItem* focusedItem() const;
 
-    bool hasHeader();
-    bool hasFooter();
+    bool hasHeader() const;
+    bool hasFooter() const;
 
     QQuickItem* m_listView;
     QList<QObject*> m_focusChain;
