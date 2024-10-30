@@ -85,7 +85,7 @@ Window  {
         }
 
         function onShowPassphraseRequestDrawer() {
-            privateKeyPassphraseDrawer.open()
+            privateKeyPassphraseDrawer.openTriggered()
         }
 
         function onGoToPageSettingsBackup() {
@@ -221,7 +221,7 @@ Window  {
                     text: qsTr("Save")
 
                     clickedFunc: function() {
-                        privateKeyPassphraseDrawer.close()
+                        privateKeyPassphraseDrawer.closeTriggered()
                         PageController.passphraseRequestDrawerClosed(passphrase.textFieldText)
                     }
                 }

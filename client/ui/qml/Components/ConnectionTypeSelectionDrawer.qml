@@ -46,7 +46,7 @@ DrawerType2 {
 
             clickedFunction: function() {
                 PageController.goToPage(PageEnum.PageSetupWizardCredentials)
-                root.close()
+                root.closeTriggered()
             }
         }
 
@@ -61,7 +61,7 @@ DrawerType2 {
 
             clickedFunction: function() {
                 PageController.goToPage(PageEnum.PageSetupWizardConfigSource)
-                root.close()
+                root.closeTriggered()
             }
         }
 

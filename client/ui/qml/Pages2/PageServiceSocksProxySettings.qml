@@ -322,7 +322,7 @@ PageType {
                                     tempPort = portTextField.textFieldText
                                     tempUsername = usernameTextField.textFieldText
                                     tempPassword = passwordTextField.textFieldText
-                                    changeSettingsDrawer.close()
+                                    changeSettingsDrawer.closeTriggered()
                                 }
                             }
                         }
@@ -341,7 +341,7 @@ PageType {
 
                         clickedFunc: function() {
                             forceActiveFocus()
-                            changeSettingsDrawer.open()
+                            changeSettingsDrawer.openTriggered()
                         }
                     }
                 }

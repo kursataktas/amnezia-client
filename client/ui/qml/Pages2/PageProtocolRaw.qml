@@ -93,7 +93,7 @@ PageType {
                             text: qsTr("Show connection options")
 
                             clickedFunction: function() {
-                                configContentDrawer.open()
+                                configContentDrawer.openTriggered()
                             }
 
                             MouseArea {
@@ -125,7 +125,7 @@ PageType {
                                     anchors.topMargin: 16
 
                                     backButtonFunction: function() {
-                                        configContentDrawer.close()
+                                        configContentDrawer.closeTriggered()
                                     }
                                 }
 

@@ -43,7 +43,7 @@ DrawerType2 {
             BackButtonType {
                 backButtonImage: "qrc:/images/controls/arrow-left.svg"
                 backButtonFunction: function() {
-                    root.close()
+                    root.closeTriggered()
                 }
             }
 
@@ -157,7 +157,7 @@ DrawerType2 {
                 PageController.showBusyIndicator(true)
                 AppSplitTunnelingController.addApps(installedAppsModel.getSelectedAppsInfo())
                 PageController.showBusyIndicator(false)
-                root.close()
+                root.closeTriggered()
             }
         }
     }

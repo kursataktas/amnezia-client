@@ -127,7 +127,7 @@ PageType {
 
                 clickedFunction: function() {
                     selector.text = selectedText
-                    selector.close()
+                    selector.closeTriggered()
                     if (AppSplitTunnelingModel.routeMode !== root.routeModesModel[currentIndex].type) {
                         AppSplitTunnelingModel.routeMode = root.routeModesModel[currentIndex].type
                     }
@@ -266,7 +266,7 @@ PageType {
                         AppSplitTunnelingController.addApp(fileName)
                     }
                 } else if (Qt.platform.os === "android"){
-                    installedAppDrawer.open()
+                    installedAppDrawer.openTriggered()
                 }
 
                 PageController.showBusyIndicator(false)

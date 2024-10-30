@@ -48,7 +48,7 @@ DrawerType2 {
 
             clickedFunction: function() {
                PageController.goToPage(PageEnum.PageSettingsSplitTunneling)
-               root.close()
+               root.closeTriggered()
             }
         }
 
