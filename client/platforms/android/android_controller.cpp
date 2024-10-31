@@ -165,7 +165,9 @@ QString AndroidController::openFile(const QString &filter)
             [&fileName, &wait](const QString &uri) {
                 qDebug() << "Android event: file opened; uri:" << uri;
                 fileName = QQmlFile::urlToLocalFileOrQrc(uri);
-                qDebug() << "Android opened filename:" << fileName;
+                qDebug() << "Qt url to local file:" << fileName;
+                // if qt failed, try using just uri
+                if (fileName.isEmpty()) fileName = uri;
                 wait.quit();
             },
             static_cast<Qt::ConnectionType>(Qt::QueuedConnection | Qt::SingleShotConnection));

@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.NotificationManager
+import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Intent
@@ -563,16 +564,20 @@ class AmneziaActivity : QtActivity() {
                     }
                 }
             }.also {
-                startActivityForResult(it, OPEN_FILE_ACTION_CODE, ActivityResultHandler(
-                    onAny = {
-                        val uri = it?.data?.toString() ?: ""
-                        Log.v(TAG, "Open file: $uri")
-                        mainScope.launch {
-                            qtInitialized.await()
-                            QtAndroidController.onFileOpened(uri)
+                try {
+                    startActivityForResult(it, OPEN_FILE_ACTION_CODE, ActivityResultHandler(
+                        onAny = {
+                            val uri = it?.data?.toString() ?: ""
+                            Log.v(TAG, "Open file: $uri")
+                            mainScope.launch {
+                                qtInitialized.await()
+                                QtAndroidController.onFileOpened(uri)
+                            }
                         }
-                    }
-                ))
+                    ))
+                } catch (_: ActivityNotFoundException) {
+                    Toast.makeText(this@AmneziaActivity, resources.getText(R.string.tvNoFileBrowser), Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
