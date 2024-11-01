@@ -25,20 +25,149 @@ PageType {
         }
     }
 
-    FlickableType {
-        id: fl
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        contentHeight: content.height
+    QtObject {
+        id: amneziaVpn
 
-        ColumnLayout {
-            id: content
+        property string title: qsTr("VPN by Amnezia")
+        property string description: qsTr("Connect to classic paid and free VPN services from Amnezia")
+        property string imageSource: "qrc:/images/controls/amnezia.svg"
+        property bool isVisible: true
+        property var handler: function() {
+            PageController.showBusyIndicator(true)
+            var result = InstallController.fillAvailableServices()
+            PageController.showBusyIndicator(false)
+            if (result) {
+                PageController.goToPage(PageEnum.PageSetupWizardApiServicesList)
+            }
+        }
+    }
 
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
+    QtObject {
+        id: selfHostVpn
 
-            spacing: 0
+        property string title: qsTr("Self-hosted VPN")
+        property string description: qsTr("Configure Amnezia VPN on your own server")
+        property string imageSource: "qrc:/images/controls/server.svg"
+        property bool isVisible: true
+        property var handler: function() {
+            PageController.goToPage(PageEnum.PageSetupWizardCredentials)
+        }
+    }
+
+    QtObject {
+        id: backupRestore
+
+        property string title: qsTr("Restore from backup")
+        property string description: qsTr("")
+        property string imageSource: "qrc:/images/controls/archive-restore.svg"
+        property bool isVisible: true
+        property var handler: function() {
+            var filePath = SystemController.getFileName(qsTr("Open backup file"),
+                                                        qsTr("Backup files (*.backup)"))
+            if (filePath !== "") {
+                PageController.showBusyIndicator(true)
+                SettingsController.restoreAppConfig(filePath)
+                PageController.showBusyIndicator(false)
+            }
+        }
+    }
+
+    QtObject {
+        id: fileOpen
+
+        property string title: qsTr("File with connection settings")
+        property string description: qsTr("")
+        property string imageSource: "qrc:/images/controls/folder-search-2.svg"
+        property bool isVisible: true
+        property var handler: function() {
+            var nameFilter = !ServersModel.getServersCount() ? "Config or backup files (*.vpn *.ovpn *.conf *.json *.backup)" :
+                                                               "Config files (*.vpn *.ovpn *.conf *.json)"
+            var fileName = SystemController.getFileName(qsTr("Open config file"), nameFilter)
+            if (fileName !== "") {
+                if (ImportController.extractConfigFromFile(fileName)) {
+                    PageController.goToPage(PageEnum.PageSetupWizardViewConfig)
+                }
+            }
+        }
+    }
+
+    QtObject {
+        id: qrScan
+
+        property string title: qsTr("QR code")
+        property string description: qsTr("")
+        property string imageSource: "qrc:/images/controls/scan-line.svg"
+        property bool isVisible: SettingsController.isCameraPresent()
+        property var handler: function() {
+            ImportController.startDecodingQr()
+            if (Qt.platform.os === "ios") {
+                PageController.goToPage(PageEnum.PageSetupWizardQrReader)
+            }
+        }
+    }
+
+    QtObject {
+        id: siteLink
+
+        property string title: qsTr("I have nothing")
+        property string description: qsTr("")
+        property string imageSource: "qrc:/images/controls/help-circle.svg"
+        property bool isVisible: true
+        property var handler: function() {
+            Qt.openUrlExternally(LanguageModel.getCurrentSiteUrl())
+        }
+    }
+
+    property list<QtObject> variants: [
+        amneziaVpn,
+        selfHostVpn,
+        backupRestore,
+        fileOpen,
+        qrScan,
+        siteLink
+    ]
+
+    ListView {
+        id: listView
+
+        anchors.fill: parent
+
+        property bool isFocusable: true
+
+        Keys.onTabPressed: {
+            FocusController.nextKeyTabItem()
+        }
+
+        Keys.onBacktabPressed: {
+            FocusController.previousKeyTabItem()
+        }
+
+        Keys.onUpPressed: {
+            FocusController.nextKeyUpItem()
+        }
+
+        Keys.onDownPressed: {
+            FocusController.nextKeyDownItem()
+        }
+
+        Keys.onLeftPressed: {
+            FocusController.nextKeyLeftItem()
+        }
+
+        Keys.onRightPressed: {
+            FocusController.nextKeyRightItem()
+        }
+
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+        }
+
+        model: variants
+
+        clip: true
+
+        header: ColumnLayout {
+            width: listView.width
 
             HeaderType {
                 id: moreButton
@@ -55,15 +184,6 @@ PageType {
                 actionButtonImage: isVisible ? "qrc:/images/controls/more-vertical.svg" : ""
                 actionButtonFunction: function() {
                     moreActionsDrawer.openTriggered()
-                }
-
-                actionButton.onFocusChanged: {
-                    console.debug("MOVE THIS LOGIC TO CPP!")
-                    if (actionButton.activeFocus) {
-                        if (fl) {
-                            fl.ensureVisible(moreButton)
-                        }
-                    }
                 }
 
                 DrawerType2 {
@@ -155,8 +275,6 @@ PageType {
                 headerText: qsTr("Insert key")
                 buttonText: qsTr("Insert")
 
-                parentFlickable: fl
-
                 clickedFunc: function() {
                     textField.text = ""
                     textField.paste()
@@ -170,8 +288,6 @@ PageType {
                 Layout.topMargin: 16
                 Layout.rightMargin: 16
                 Layout.leftMargin: 16
-
-                parentFlickable: fl
 
                 visible: textKey.textFieldText !== ""
 
@@ -194,154 +310,28 @@ PageType {
                 color: AmneziaStyle.color.charcoalGray
                 text: qsTr("Other connection options")
             }
+        }
+
+        delegate: ColumnLayout {
+            width: listView.width
 
             CardWithIconsType {
-                id: apiInstalling
+                id: entry
 
                 Layout.fillWidth: true
                 Layout.rightMargin: 16
                 Layout.leftMargin: 16
                 Layout.bottomMargin: 16
 
-                headerText: qsTr("VPN by Amnezia")
-                bodyText: qsTr("Connect to classic paid and free VPN services from Amnezia")
+                visible: isVisible
+
+                headerText: title
+                bodyText: description
 
                 rightImageSource: "qrc:/images/controls/chevron-right.svg"
-                leftImageSource: "qrc:/images/controls/amnezia.svg"
+                leftImageSource: imageSource
 
-                parentFlickable: fl
-
-                onClicked: function() {
-                    PageController.showBusyIndicator(true)
-                    var result = InstallController.fillAvailableServices()
-                    PageController.showBusyIndicator(false)
-                    if (result) {
-                        PageController.goToPage(PageEnum.PageSetupWizardApiServicesList)
-                    }
-                }
-            }
-
-            CardWithIconsType {
-                id: manualInstalling
-
-                Layout.fillWidth: true
-                Layout.rightMargin: 16
-                Layout.leftMargin: 16
-                Layout.bottomMargin: 16
-
-                headerText: qsTr("Self-hosted VPN")
-                bodyText: qsTr("Configure Amnezia VPN on your own server")
-
-                rightImageSource: "qrc:/images/controls/chevron-right.svg"
-                leftImageSource: "qrc:/images/controls/server.svg"
-
-                parentFlickable: fl
-
-                onClicked: {
-                    PageController.goToPage(PageEnum.PageSetupWizardCredentials)
-                }
-            }
-
-            CardWithIconsType {
-                id: backupRestore
-
-                Layout.fillWidth: true
-                Layout.rightMargin: 16
-                Layout.leftMargin: 16
-                Layout.bottomMargin: 16
-
-                visible: PageController.isStartPageVisible()
-
-                headerText: qsTr("Restore from backup")
-
-                rightImageSource: "qrc:/images/controls/chevron-right.svg"
-                leftImageSource: "qrc:/images/controls/archive-restore.svg"
-
-                parentFlickable: fl
-
-                onClicked: {
-                    var filePath = SystemController.getFileName(qsTr("Open backup file"),
-                                                                qsTr("Backup files (*.backup)"))
-                    if (filePath !== "") {
-                        PageController.showBusyIndicator(true)
-                        SettingsController.restoreAppConfig(filePath)
-                        PageController.showBusyIndicator(false)
-                    }
-                }
-            }
-
-            CardWithIconsType {
-                id: openFile
-
-                Layout.fillWidth: true
-                Layout.rightMargin: 16
-                Layout.leftMargin: 16
-                Layout.bottomMargin: 16
-
-                headerText: qsTr("File with connection settings")
-
-                rightImageSource: "qrc:/images/controls/chevron-right.svg"
-                leftImageSource: "qrc:/images/controls/folder-search-2.svg"
-
-                parentFlickable: fl
-
-                onClicked: {
-                    var nameFilter = !ServersModel.getServersCount() ? "Config or backup files (*.vpn *.ovpn *.conf *.json *.backup)" :
-                                                                       "Config files (*.vpn *.ovpn *.conf *.json)"
-                    var fileName = SystemController.getFileName(qsTr("Open config file"), nameFilter)
-                    if (fileName !== "") {
-                        if (ImportController.extractConfigFromFile(fileName)) {
-                            PageController.goToPage(PageEnum.PageSetupWizardViewConfig)
-                        }
-                    }
-                }
-            }
-
-            CardWithIconsType {
-                id: scanQr
-
-                Layout.fillWidth: true
-                Layout.rightMargin: 16
-                Layout.leftMargin: 16
-                Layout.bottomMargin: 16
-
-                visible: SettingsController.isCameraPresent()
-
-                headerText: qsTr("QR code")
-
-                rightImageSource: "qrc:/images/controls/chevron-right.svg"
-                leftImageSource: "qrc:/images/controls/scan-line.svg"
-
-                parentFlickable: fl
-
-                onClicked: {
-                    ImportController.startDecodingQr()
-                    if (Qt.platform.os === "ios") {
-                        PageController.goToPage(PageEnum.PageSetupWizardQrReader)
-                    }
-                }
-            }
-
-            CardWithIconsType {
-                id: siteLink
-
-                Layout.fillWidth: true
-                Layout.rightMargin: 16
-                Layout.leftMargin: 16
-                Layout.bottomMargin: 16
-
-                visible: PageController.isStartPageVisible()
-
-                headerText: qsTr("I have nothing")
-
-                rightImageSource: "qrc:/images/controls/chevron-right.svg"
-                leftImageSource: "qrc:/images/controls/help-circle.svg"
-
-                parentFlickable: fl
-
-                onClicked: {
-                    Qt.openUrlExternally(LanguageModel.getCurrentSiteUrl())
-                }
+                onClicked: { handler() }
             }
         }
     }
