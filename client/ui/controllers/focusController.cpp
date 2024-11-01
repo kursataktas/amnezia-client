@@ -213,7 +213,7 @@ void FocusController::nextItem(Direction direction)
 
     reload(direction);
 
-    if (m_lvfc) {
+    if (m_lvfc && isListView(m_focusedItem)) {
         direction == Direction::Forward ? focusNextListViewItem() : focusPreviousListViewItem();
         qDebug() << "===>> Handling the [ ListView ]...";
 
