@@ -5,6 +5,7 @@ import QtQuick.Layouts
 import Style 1.0
 
 import "TextTypes"
+import "../Config"
 
 Popup {
     id: root
@@ -28,7 +29,7 @@ Popup {
     }
 
     onOpened: {
-        FocusController.pushRootObject(root)
+        timer.start()
     }
 
     onClosed: {
@@ -40,6 +41,17 @@ Popup {
 
         color: "white"
         radius: 4
+    }
+
+    Timer {
+        id: timer
+        interval: 400 // Milliseconds
+        onTriggered: {
+            FocusController.pushRootObject(root)
+            FocusController.setFocusItem(closeButton)
+        }
+        repeat: false // Stop the timer after one trigger
+        running: !GC.isMobile()  // Start the timer
     }
 
     contentItem: Item {

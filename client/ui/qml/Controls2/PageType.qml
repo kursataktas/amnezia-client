@@ -18,7 +18,7 @@ Item {
     // Set a timer to set focus after a short delay
     Timer {
         id: timer
-        interval: 500 // Milliseconds
+        interval: 200 // Milliseconds
         onTriggered: {
             FocusController.resetRootObject()
             FocusController.setFocusOnDefaultItem()
