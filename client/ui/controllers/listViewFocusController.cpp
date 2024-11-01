@@ -279,10 +279,8 @@ void ListViewFocusController::focusNextItem()
         return;
     }
 
-    if (m_focusChain.empty()) {
-        qDebug() << "Empty focusChain with current delegate: " << currentDelegate() << "Scanning for elements...";
-        m_focusChain = getItemsChain(currentDelegate());
-    }
+    m_focusChain = getItemsChain(currentDelegate());
+
     if (m_focusChain.empty()) {
         qWarning() << "No elements found in the delegate. Going to next delegate...";
         nextDelegate();
