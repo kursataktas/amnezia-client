@@ -51,20 +51,50 @@ DrawerType2 {
             headerText: root.headerText
         }
 
-        FlickableType {
+        ListView {
+            id: listView
+
             anchors.top: header.bottom
             anchors.bottom: parent.bottom
-            contentHeight: content.height + 32
+            anchors.left: parent.left
+            anchors.right: parent.right
 
-            ColumnLayout {
-                id: content
+            property bool isFocusable: true
 
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.right: parent.right
+            Keys.onTabPressed: {
+                FocusController.nextKeyTabItem()
+            }
 
-                anchors.leftMargin: 16
-                anchors.rightMargin: 16
+            Keys.onBacktabPressed: {
+                FocusController.previousKeyTabItem()
+            }
+
+            Keys.onUpPressed: {
+                FocusController.nextKeyUpItem()
+            }
+
+            Keys.onDownPressed: {
+                FocusController.nextKeyDownItem()
+            }
+
+            Keys.onLeftPressed: {
+                FocusController.nextKeyLeftItem()
+            }
+
+            Keys.onRightPressed: {
+                FocusController.nextKeyRightItem()
+            }
+
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AsNeeded
+            }
+
+            model: 1
+
+            clip: true
+
+            header: ColumnLayout {
+                width: listView.width
 
                 visible: root.contentVisible
 
@@ -72,6 +102,8 @@ DrawerType2 {
                     id: shareButton
                     Layout.fillWidth: true
                     Layout.topMargin: 16
+                    Layout.leftMargin: 16
+                    Layout.rightMargin: 16
 
                     text: qsTr("Share")
                     imageSource: "qrc:/images/controls/share-2.svg"
@@ -99,6 +131,8 @@ DrawerType2 {
                     id: copyConfigTextButton
                     Layout.fillWidth: true
                     Layout.topMargin: 8
+                    Layout.leftMargin: 16
+                    Layout.rightMargin: 16
 
                     defaultColor: AmneziaStyle.color.transparent
                     hoveredColor: AmneziaStyle.color.translucentWhite
@@ -118,6 +152,8 @@ DrawerType2 {
                     id: copyNativeConfigStringButton
                     Layout.fillWidth: true
                     Layout.topMargin: 8
+                    Layout.leftMargin: 16
+                    Layout.rightMargin: 16
 
                     visible: false
 
@@ -137,6 +173,8 @@ DrawerType2 {
 
                     Layout.fillWidth: true
                     Layout.topMargin: 24
+                    Layout.leftMargin: 16
+                    Layout.rightMargin: 16
 
                     defaultColor: AmneziaStyle.color.transparent
                     hoveredColor: AmneziaStyle.color.translucentWhite
@@ -263,6 +301,10 @@ DrawerType2 {
                         }
                     }
                 }
+            }
+
+            delegate: ColumnLayout {
+                width: listView.width
 
                 Rectangle {
                     id: qrCodeContainer
@@ -270,6 +312,8 @@ DrawerType2 {
                     Layout.fillWidth: true
                     Layout.preferredHeight: width
                     Layout.topMargin: 20
+                    Layout.leftMargin: 16
+                    Layout.rightMargin: 16
 
                     visible: ExportController.qrCodesCount > 0
 
@@ -280,6 +324,32 @@ DrawerType2 {
                         smooth: false
 
                         source: ExportController.qrCodesCount ? ExportController.qrCodes[0] : ""
+
+                        property bool isFocusable: true
+
+                        Keys.onTabPressed: {
+                            FocusController.nextKeyTabItem()
+                        }
+
+                        Keys.onBacktabPressed: {
+                            FocusController.previousKeyTabItem()
+                        }
+
+                        Keys.onUpPressed: {
+                            FocusController.nextKeyUpItem()
+                        }
+
+                        Keys.onDownPressed: {
+                            FocusController.nextKeyDownItem()
+                        }
+
+                        Keys.onLeftPressed: {
+                            FocusController.nextKeyLeftItem()
+                        }
+
+                        Keys.onRightPressed: {
+                            FocusController.nextKeyRightItem()
+                        }
 
                         Timer {
                             property int index: 0
@@ -307,6 +377,8 @@ DrawerType2 {
                     Layout.fillWidth: true
                     Layout.topMargin: 24
                     Layout.bottomMargin: 32
+                    Layout.leftMargin: 16
+                    Layout.rightMargin: 16
 
                     visible: ExportController.qrCodesCount > 0
 
