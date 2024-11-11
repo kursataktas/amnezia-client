@@ -85,7 +85,7 @@ Item {
 
         function onClosed() {
             drawerContent.state = root.drawerCollapsedStateName
-            
+
             if (root.isCollapsedStateActive()) {
                 var initialPageNavigationBarColor = PageController.getInitialPageNavigationBarColor()
                 if (initialPageNavigationBarColor !== 0xFF1C1D21) {
@@ -126,6 +126,7 @@ Item {
         id: background
 
         anchors.fill: parent
+        color: root.isCollapsed ? AmneziaStyle.color.transparent : AmneziaStyle.color.translucentMidnightBlack
 
         Behavior on color {
             PropertyAnimation { duration: 200 }
