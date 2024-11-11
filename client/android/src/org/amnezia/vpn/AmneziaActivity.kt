@@ -13,6 +13,7 @@ import android.content.Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
 import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
@@ -21,6 +22,8 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.Message
 import android.os.Messenger
+import android.os.ParcelFileDescriptor
+import android.provider.OpenableColumns
 import android.provider.Settings
 import android.view.MotionEvent
 import android.view.WindowManager.LayoutParams
@@ -29,6 +32,7 @@ import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import java.io.FileNotFoundException
 import java.io.IOException
 import kotlin.LazyThreadSafetyMode.NONE
 import kotlin.text.RegexOption.IGNORE_CASE
@@ -72,6 +76,7 @@ class AmneziaActivity : QtActivity() {
     private var isInBoundState = false
     private var notificationStateReceiver: BroadcastReceiver? = null
     private lateinit var vpnServiceMessenger: IpcMessenger
+    private var pfd: ParcelFileDescriptor? = null
 
     private val actionResultHandlers = mutableMapOf<Int, ActivityResultHandler>()
     private val permissionRequestHandlers = mutableMapOf<Int, PermissionRequestHandler>()
@@ -564,6 +569,11 @@ class AmneziaActivity : QtActivity() {
                     }
                 }
             }.also {
+                if (packageManager.resolveActivity(it, PackageManager.MATCH_DEFAULT_ONLY) == null) {
+                    Log.w(TAG, "Not found activity for ACTION_OPEN_DOCUMENT intent")
+                    it.action = Intent.ACTION_GET_CONTENT
+                }
+
                 try {
                     startActivityForResult(it, OPEN_FILE_ACTION_CODE, ActivityResultHandler(
                         onAny = {
@@ -580,6 +590,33 @@ class AmneziaActivity : QtActivity() {
                 }
             }
         }
+    }
+
+    @Suppress("unused")
+    fun getFd(fileName: String): Int = try {
+        Log.v(TAG, "Get fd for $fileName")
+        pfd = contentResolver.openFileDescriptor(Uri.parse(fileName), "r")
+        pfd?.fd ?: -1
+    } catch (e: FileNotFoundException) {
+        Log.e(TAG, "Failed to get fd: $e")
+        -1
+    }
+
+    @Suppress("unused")
+    fun closeFd() {
+        Log.v(TAG, "Close fd")
+        pfd?.close()
+        pfd = null
+    }
+
+    @Suppress("unused")
+    fun getFileName(uri: String): String {
+        contentResolver.query(Uri.parse(uri), arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst() && !cursor.isNull(0)) {
+                return cursor.getString(0)
+            }
+        }
+        return ""
     }
 
     @Suppress("unused")
