@@ -520,21 +520,25 @@ class AmneziaActivity : QtActivity() {
                 type = "text/*"
                 putExtra(Intent.EXTRA_TITLE, fileName)
             }.also {
-                startActivityForResult(it, CREATE_FILE_ACTION_CODE, ActivityResultHandler(
-                    onSuccess = {
-                        it?.data?.let { uri ->
-                            Log.v(TAG, "Save file to $uri")
-                            try {
-                                contentResolver.openOutputStream(uri)?.use { os ->
-                                    os.bufferedWriter().use { it.write(data) }
+                try {
+                    startActivityForResult(it, CREATE_FILE_ACTION_CODE, ActivityResultHandler(
+                        onSuccess = {
+                            it?.data?.let { uri ->
+                                Log.v(TAG, "Save file to $uri")
+                                try {
+                                    contentResolver.openOutputStream(uri)?.use { os ->
+                                        os.bufferedWriter().use { it.write(data) }
+                                    }
+                                } catch (e: IOException) {
+                                    Log.e(TAG, "Failed to save file $uri: $e")
+                                    // todo: send error to Qt
                                 }
-                            } catch (e: IOException) {
-                                Log.e(TAG, "Failed to save file $uri: $e")
-                                // todo: send error to Qt
                             }
                         }
-                    }
-                ))
+                    ))
+                } catch (_: ActivityNotFoundException) {
+                    Toast.makeText(this@AmneziaActivity, "Unsupported", Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
@@ -543,53 +547,71 @@ class AmneziaActivity : QtActivity() {
     fun openFile(filter: String?) {
         Log.v(TAG, "Open file with filter: $filter")
         mainScope.launch {
-            val mimeTypes = if (!filter.isNullOrEmpty()) {
-                val extensionRegex = "\\*\\.([a-z0-9]+)".toRegex(IGNORE_CASE)
-                val mime = MimeTypeMap.getSingleton()
-                extensionRegex.findAll(filter).map {
-                    it.groups[1]?.value?.let { mime.getMimeTypeFromExtension(it) } ?: "*/*"
-                }.toSet()
-            } else emptySet()
+            val intent = if (!isOnTv()) {
+                val mimeTypes = if (!filter.isNullOrEmpty()) {
+                    val extensionRegex = "\\*\\.([a-z0-9]+)".toRegex(IGNORE_CASE)
+                    val mime = MimeTypeMap.getSingleton()
+                    extensionRegex.findAll(filter).map {
+                        it.groups[1]?.value?.let { mime.getMimeTypeFromExtension(it) } ?: "*/*"
+                    }.toSet()
+                } else emptySet()
 
-            Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                addCategory(Intent.CATEGORY_OPENABLE)
-                Log.v(TAG, "File mimyType filter: $mimeTypes")
-                if ("*/*" in mimeTypes) {
-                    type = "*/*"
-                } else {
-                    when (mimeTypes.size) {
-                        1 -> type = mimeTypes.first()
+                Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    Log.v(TAG, "File mimyType filter: $mimeTypes")
+                    if ("*/*" in mimeTypes) {
+                        type = "*/*"
+                    } else {
+                        when (mimeTypes.size) {
+                            1 -> type = mimeTypes.first()
 
-                        in 2..Int.MAX_VALUE -> {
-                            type = "*/*"
-                            putExtra(EXTRA_MIME_TYPES, mimeTypes.toTypedArray())
+                            in 2..Int.MAX_VALUE -> {
+                                type = "*/*"
+                                putExtra(EXTRA_MIME_TYPES, mimeTypes.toTypedArray())
+                            }
+
+                            else -> type = "*/*"
                         }
-
-                        else -> type = "*/*"
                     }
                 }
-            }.also {
-                if (packageManager.resolveActivity(it, PackageManager.MATCH_DEFAULT_ONLY) == null) {
-                    Log.w(TAG, "Not found activity for ACTION_OPEN_DOCUMENT intent")
-                    it.action = Intent.ACTION_GET_CONTENT
-                }
+            } else {
+                Intent(this@AmneziaActivity, TvFilePicker::class.java)
+            }
 
-                try {
-                    startActivityForResult(it, OPEN_FILE_ACTION_CODE, ActivityResultHandler(
-                        onAny = {
-                            val uri = it?.data?.toString() ?: ""
-                            Log.v(TAG, "Open file: $uri")
-                            mainScope.launch {
-                                qtInitialized.await()
-                                QtAndroidController.onFileOpened(uri)
-                            }
+            try {
+                startActivityForResult(intent, OPEN_FILE_ACTION_CODE, ActivityResultHandler(
+                    onAny = {
+                        if (isOnTv() && it?.hasExtra("activityNotFound") == true) {
+                            showNoFileBrowserAlertDialog()
                         }
-                    ))
-                } catch (_: ActivityNotFoundException) {
-                    Toast.makeText(this@AmneziaActivity, resources.getText(R.string.tvNoFileBrowser), Toast.LENGTH_LONG).show()
+                        val uri = it?.data?.toString() ?: ""
+                        Log.v(TAG, "Open file: $uri")
+                        mainScope.launch {
+                            qtInitialized.await()
+                            QtAndroidController.onFileOpened(uri)
+                        }
+                    }
+                ))
+            } catch (_: ActivityNotFoundException) {
+                showNoFileBrowserAlertDialog()
+                mainScope.launch {
+                    qtInitialized.await()
+                    QtAndroidController.onFileOpened("")
                 }
             }
         }
+    }
+
+    private fun showNoFileBrowserAlertDialog() {
+        AlertDialog.Builder(this)
+            .setMessage(R.string.tvNoFileBrowser)
+            .setCancelable(false)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://webstoreredirect")))
+                } catch (_: Throwable) {}
+            }
+            .show()
     }
 
     @Suppress("unused")
