@@ -36,6 +36,10 @@ class TvFilePicker : ComponentActivity() {
             Log.w(TAG, "Activity not found")
             setResult(RESULT_CANCELED, Intent().apply { putExtra("activityNotFound", true) })
             finish()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get file: $e")
+            setResult(RESULT_CANCELED)
+            finish()
         }
     }
 }

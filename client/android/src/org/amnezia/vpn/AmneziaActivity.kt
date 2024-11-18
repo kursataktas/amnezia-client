@@ -32,9 +32,9 @@ import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
-import java.io.FileNotFoundException
 import java.io.IOException
 import kotlin.LazyThreadSafetyMode.NONE
+import kotlin.coroutines.CoroutineContext
 import kotlin.text.RegexOption.IGNORE_CASE
 import AppListProvider
 import kotlinx.coroutines.CompletableDeferred
@@ -584,7 +584,9 @@ class AmneziaActivity : QtActivity() {
                         if (isOnTv() && it?.hasExtra("activityNotFound") == true) {
                             showNoFileBrowserAlertDialog()
                         }
-                        val uri = it?.data?.toString() ?: ""
+                        val uri = it?.data?.apply {
+                            grantUriPermission(packageName, this, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }.toString() ?: ""
                         Log.v(TAG, "Open file: $uri")
                         mainScope.launch {
                             qtInitialized.await()
@@ -615,30 +617,43 @@ class AmneziaActivity : QtActivity() {
     }
 
     @Suppress("unused")
-    fun getFd(fileName: String): Int = try {
+    fun getFd(fileName: String): Int {
         Log.v(TAG, "Get fd for $fileName")
-        pfd = contentResolver.openFileDescriptor(Uri.parse(fileName), "r")
-        pfd?.fd ?: -1
-    } catch (e: FileNotFoundException) {
-        Log.e(TAG, "Failed to get fd: $e")
-        -1
+        return blockingCall {
+            try {
+                pfd = contentResolver.openFileDescriptor(Uri.parse(fileName), "r")
+                pfd?.fd ?: -1
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to get fd: $e")
+                -1
+            }
+        }
     }
 
     @Suppress("unused")
     fun closeFd() {
         Log.v(TAG, "Close fd")
-        pfd?.close()
-        pfd = null
+        mainScope.launch {
+            pfd?.close()
+            pfd = null
+        }
     }
 
     @Suppress("unused")
     fun getFileName(uri: String): String {
-        contentResolver.query(Uri.parse(uri), arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
-            if (cursor.moveToFirst() && !cursor.isNull(0)) {
-                return cursor.getString(0)
+        Log.v(TAG, "Get file name for uri: $uri")
+        return blockingCall {
+            try {
+                contentResolver.query(Uri.parse(uri), arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst() && !cursor.isNull(0)) {
+                        return@blockingCall cursor.getString(0) ?: ""
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to get file name: $e")
             }
+            ""
         }
-        return ""
     }
 
     @Suppress("unused")
@@ -848,6 +863,13 @@ class AmneziaActivity : QtActivity() {
     /**
      * Utils methods
      */
+    private fun <T> blockingCall(
+        context: CoroutineContext = Dispatchers.Main.immediate,
+        block: suspend () -> T
+    ) = runBlocking {
+        mainScope.async(context) { block() }.await()
+    }
+
     companion object {
         private fun actionCodeToString(actionCode: Int): String =
             when (actionCode) {
